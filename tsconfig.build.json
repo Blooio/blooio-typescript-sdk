@@ -5,8 +5,8 @@
   "compilerOptions": {
     "rootDir": "./dist/src",
     "paths": {
-      "blooio/*": ["./dist/src/*"],
-      "blooio": ["./dist/src/index.ts"]
+      "@blooio/sdk/*": ["./dist/src/*"],
+      "@blooio/sdk": ["./dist/src/index.ts"]
     },
     "noEmit": false,
     "declaration": true,

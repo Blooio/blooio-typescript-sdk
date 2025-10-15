@@ -1,6 +1,6 @@
 // File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
-import { Blooio } from 'blooio';
+import { Blooio } from '@blooio/sdk';
 
 const { stringifyQuery } = Blooio.prototype as any;
 
