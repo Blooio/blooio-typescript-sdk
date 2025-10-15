@@ -1,4 +1,4 @@
 configured_endpoints: 12
 openapi_spec_url: https://storage.googleapis.com/stainless-sdk-openapi-specs/blooio%2Fblooio-2d1e4d94ef5b48617299b653eb3509f32fe4e9d6315ee9f3bac50b83635d736b.yml
 openapi_spec_hash: 27229154f39588fcc348a91e6b293664
-config_hash: bc4ac8bf4ebbee34ce506813e5b20ba2
+config_hash: bc0eed236317d3ddedb50d95ec533ed1
