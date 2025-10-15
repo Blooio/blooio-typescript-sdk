@@ -1,5 +1,5 @@
-import { multipartFormRequestOptions, createForm } from 'blooio/internal/uploads';
-import { toFile } from 'blooio/core/uploads';
+import { multipartFormRequestOptions, createForm } from '@blooio/sdk/internal/uploads';
+import { toFile } from '@blooio/sdk/core/uploads';
 
 describe('form data validation', () => {
   test('valid values do not error', async () => {

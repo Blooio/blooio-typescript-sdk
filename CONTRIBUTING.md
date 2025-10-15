@@ -55,12 +55,12 @@ $ cd blooio-typescript-sdk
 # With yarn
 $ yarn link
 $ cd ../my-package
-$ yarn link blooio
+$ yarn link @blooio/sdk
 
 # With pnpm
 $ pnpm link --global
 $ cd ../my-package
-$ pnpm link -—global blooio
+$ pnpm link -—global @blooio/sdk
 ```
 
 ## Running tests
