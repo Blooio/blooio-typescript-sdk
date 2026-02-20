@@ -8,7 +8,7 @@ const client = new Blooio({
 });
 
 describe('resource contacts', () => {
-  // Prism tests are disabled
+  // Mock server tests are disabled
   test.skip('checkCapabilities', async () => {
     const responsePromise = client.contacts.checkCapabilities('contact');
     const rawResponse = await responsePromise.asResponse();

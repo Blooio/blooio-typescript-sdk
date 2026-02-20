@@ -8,7 +8,7 @@ const client = new Blooio({
 });
 
 describe('resource webhook', () => {
-  // Prism tests are disabled
+  // Mock server tests are disabled
   test.skip('retrieve', async () => {
     const responsePromise = client.config.webhook.retrieve();
     const rawResponse = await responsePromise.asResponse();
@@ -20,7 +20,7 @@ describe('resource webhook', () => {
     expect(dataAndResponse.response).toBe(rawResponse);
   });
 
-  // Prism tests are disabled
+  // Mock server tests are disabled
   test.skip('update: only required params', async () => {
     const responsePromise = client.config.webhook.update({ webhook_url: 'https://example.com/mywebhook' });
     const rawResponse = await responsePromise.asResponse();
@@ -32,7 +32,7 @@ describe('resource webhook', () => {
     expect(dataAndResponse.response).toBe(rawResponse);
   });
 
-  // Prism tests are disabled
+  // Mock server tests are disabled
   test.skip('update: required and optional params', async () => {
     const response = await client.config.webhook.update({ webhook_url: 'https://example.com/mywebhook' });
   });

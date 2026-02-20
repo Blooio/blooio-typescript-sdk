@@ -8,7 +8,7 @@ const client = new Blooio({
 });
 
 describe('resource batches', () => {
-  // Prism tests are disabled
+  // Mock server tests are disabled
   test.skip('create', async () => {
     const responsePromise = client.batches.create();
     const rawResponse = await responsePromise.asResponse();
@@ -20,7 +20,7 @@ describe('resource batches', () => {
     expect(dataAndResponse.response).toBe(rawResponse);
   });
 
-  // Prism tests are disabled
+  // Mock server tests are disabled
   test.skip('retrieve', async () => {
     const responsePromise = client.batches.retrieve('batchId');
     const rawResponse = await responsePromise.asResponse();
@@ -32,7 +32,7 @@ describe('resource batches', () => {
     expect(dataAndResponse.response).toBe(rawResponse);
   });
 
-  // Prism tests are disabled
+  // Mock server tests are disabled
   test.skip('listMessages', async () => {
     const responsePromise = client.batches.listMessages('batchId');
     const rawResponse = await responsePromise.asResponse();
@@ -44,7 +44,7 @@ describe('resource batches', () => {
     expect(dataAndResponse.response).toBe(rawResponse);
   });
 
-  // Prism tests are disabled
+  // Mock server tests are disabled
   test.skip('retrieveStatus', async () => {
     const responsePromise = client.batches.retrieveStatus('batchId');
     const rawResponse = await responsePromise.asResponse();
