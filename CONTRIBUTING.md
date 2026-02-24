@@ -60,7 +60,7 @@ $ yarn link @blooio/sdk
 # With pnpm
 $ pnpm link --global
 $ cd ../my-package
-$ pnpm link -—global @blooio/sdk
+$ pnpm link --global @blooio/sdk
 ```
 
 ## Running tests
