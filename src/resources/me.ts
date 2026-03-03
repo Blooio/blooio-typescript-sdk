@@ -4,6 +4,9 @@ import { APIResource } from '../core/resource';
 import { APIPromise } from '../core/api-promise';
 import { RequestOptions } from '../internal/request-options';
 
+/**
+ * Account and API key information
+ */
 export class Me extends APIResource {
   /**
    * Returns information about the authenticated API key including plan, devices,
