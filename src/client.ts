@@ -728,10 +728,22 @@ export class Blooio {
 
   static toFile = Uploads.toFile;
 
+  /**
+   * Account and API key information
+   */
   me: API.Me = new API.Me(this);
+  /**
+   * Contact-related operations
+   */
   contacts: API.Contacts = new API.Contacts(this);
+  /**
+   * Send and manage individual messages
+   */
   messages: API.Messages = new API.Messages(this);
   config: API.Config = new API.Config(this);
+  /**
+   * Bulk/batch operations (stubbed)
+   */
   batches: API.Batches = new API.Batches(this);
 }
 

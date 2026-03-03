@@ -5,6 +5,9 @@ import { APIPromise } from '../core/api-promise';
 import { RequestOptions } from '../internal/request-options';
 import { path } from '../internal/utils/path';
 
+/**
+ * Contact-related operations
+ */
 export class Contacts extends APIResource {
   /**
    * Check if a phone number or email address supports iMessage, SMS, RCS, and other

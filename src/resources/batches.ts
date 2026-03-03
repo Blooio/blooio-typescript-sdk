@@ -6,6 +6,9 @@ import { buildHeaders } from '../internal/headers';
 import { RequestOptions } from '../internal/request-options';
 import { path } from '../internal/utils/path';
 
+/**
+ * Bulk/batch operations (stubbed)
+ */
 export class Batches extends APIResource {
   /**
    * Create a batch of messages (stub)

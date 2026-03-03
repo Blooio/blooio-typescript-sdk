@@ -6,6 +6,9 @@ import { buildHeaders } from '../internal/headers';
 import { RequestOptions } from '../internal/request-options';
 import { path } from '../internal/utils/path';
 
+/**
+ * Send and manage individual messages
+ */
 export class Messages extends APIResource {
   /**
    * Retrieve full message metadata including direction, protocol, text length,
