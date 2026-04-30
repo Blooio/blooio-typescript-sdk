@@ -8,8 +8,8 @@
     "moduleResolution": "node",
     "esModuleInterop": true,
     "paths": {
-      "blooio/*": ["./src/*"],
-      "blooio": ["./src/index.ts"]
+      "@blooio/sdk/*": ["./src/*"],
+      "@blooio/sdk": ["./src/index.ts"]
     },
     "noEmit": true,
 

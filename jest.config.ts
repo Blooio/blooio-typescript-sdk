@@ -7,8 +7,8 @@ const config: JestConfigWithTsJest = {
     '^.+\\.(t|j)sx?$': ['@swc/jest', { sourceMaps: 'inline' }],
   },
   moduleNameMapper: {
-    '^blooio$': '<rootDir>/src/index.ts',
-    '^blooio/(.*)$': '<rootDir>/src/$1',
+    '^@blooio/sdk$': '<rootDir>/src/index.ts',
+    '^@blooio/sdk/(.*)$': '<rootDir>/src/$1',
   },
   modulePathIgnorePatterns: [
     '<rootDir>/ecosystem-tests/',

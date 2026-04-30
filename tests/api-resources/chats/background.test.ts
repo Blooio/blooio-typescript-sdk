@@ -1,6 +1,6 @@
 // File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
-import Blooio, { toFile } from 'blooio';
+import Blooio, { toFile } from '@blooio/sdk';
 
 const client = new Blooio({
   apiKey: 'My API Key',
