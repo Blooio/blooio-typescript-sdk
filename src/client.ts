@@ -17,18 +17,54 @@ import * as Errors from './core/error';
 import * as Uploads from './core/uploads';
 import * as API from './resources/index';
 import { APIPromise } from './core/api-promise';
-import { Batches } from './resources/batches';
-import { ContactCheckCapabilitiesResponse, Contacts } from './resources/contacts';
-import { Me, MeRetrieveResponse } from './resources/me';
+import { Facetime, FacetimeInitiateCallParams, FacetimeInitiateCallResponse } from './resources/facetime';
 import {
-  MessageCancelResponse,
-  MessageGetStatusResponse,
-  MessageRetrieveResponse,
-  MessageSendParams,
-  MessageSendResponse,
-  Messages,
-} from './resources/messages';
-import { Config } from './resources/config/config';
+  ChatListParams,
+  ChatListResponse,
+  ChatMarkAsReadResponse,
+  ChatRetrieveResponse,
+  ChatShareContactCardResponse,
+  Chats,
+  LastMessage,
+} from './resources/chats/chats';
+import {
+  Contact,
+  ContactCheckCapabilitiesResponse,
+  ContactCreateParams,
+  ContactListParams,
+  ContactListResponse,
+  ContactUpdateParams,
+  Contacts,
+  DeleteResponse,
+  Pagination,
+} from './resources/contacts/contacts';
+import {
+  Group,
+  GroupCreateParams,
+  GroupCreateResponse,
+  GroupDeleteResponse,
+  GroupListParams,
+  GroupListResponse,
+  GroupUpdateParams,
+  GroupUpdateResponse,
+  Groups,
+} from './resources/groups/groups';
+import { Location } from './resources/location/location';
+import { Me, MeRetrieveResponse } from './resources/me/me';
+import {
+  PhoneNumberBatchCreateParams,
+  PhoneNumberBatchCreateResponse,
+  PhoneNumbers,
+} from './resources/phone-numbers/phone-numbers';
+import {
+  Webhook,
+  WebhookCreateParams,
+  WebhookCreateResponse,
+  WebhookDeleteResponse,
+  WebhookListResponse,
+  WebhookUpdateParams,
+  Webhooks,
+} from './resources/webhooks/webhooks';
 import { type Fetch } from './internal/builtin-types';
 import { HeadersLike, NullableHeaders, buildHeaders } from './internal/headers';
 import { FinalRequestOptions, RequestOptions } from './internal/request-options';
@@ -44,7 +80,7 @@ import { isEmptyObj } from './internal/utils/values';
 
 export interface ClientOptions {
   /**
-   * API key must be provided in the Authorization header as `Bearer YOUR_API_KEY`.
+   * API key authentication. Use your API key as the bearer token.
    */
   apiKey?: string | undefined;
 
@@ -139,7 +175,7 @@ export class Blooio {
    * API Client for interfacing with the Blooio API.
    *
    * @param {string | undefined} [opts.apiKey=process.env['BLOOIO_API_KEY'] ?? undefined]
-   * @param {string} [opts.baseURL=process.env['BLOOIO_BASE_URL'] ?? https://backend.blooio.com] - Override the default base URL for the API.
+   * @param {string} [opts.baseURL=process.env['BLOOIO_BASE_URL'] ?? https://backend.blooio.com/v2/api] - Override the default base URL for the API.
    * @param {number} [opts.timeout=1 minute] - The maximum amount of time (in milliseconds) the client will wait for a response before timing out.
    * @param {MergedRequestInit} [opts.fetchOptions] - Additional `RequestInit` options to be passed to `fetch` calls.
    * @param {Fetch} [opts.fetch] - Specify a custom `fetch` function implementation.
@@ -161,7 +197,7 @@ export class Blooio {
     const options: ClientOptions = {
       apiKey,
       ...opts,
-      baseURL: baseURL || `https://backend.blooio.com`,
+      baseURL: baseURL || `https://backend.blooio.com/v2/api`,
     };
 
     this.baseURL = options.baseURL!;
@@ -178,6 +214,18 @@ export class Blooio {
     this.maxRetries = options.maxRetries ?? 2;
     this.fetch = options.fetch ?? Shims.getDefaultFetch();
     this.#encoder = Opts.FallbackEncoder;
+
+    const customHeadersEnv = readEnv('BLOOIO_CUSTOM_HEADERS');
+    if (customHeadersEnv) {
+      const parsed: Record<string, string> = {};
+      for (const line of customHeadersEnv.split('\n')) {
+        const colon = line.indexOf(':');
+        if (colon >= 0) {
+          parsed[line.substring(0, colon).trim()] = line.substring(colon + 1).trim();
+        }
+      }
+      options.defaultHeaders = { ...parsed, ...options.defaultHeaders };
+    }
 
     this._options = options;
 
@@ -207,7 +255,7 @@ export class Blooio {
    * Check whether the base URL is set to its default.
    */
   #baseURLOverridden(): boolean {
-    return this.baseURL !== 'https://backend.blooio.com';
+    return this.baseURL !== 'https://backend.blooio.com/v2/api';
   }
 
   protected defaultQuery(): Record<string, string | undefined> | undefined {
@@ -258,8 +306,9 @@ export class Blooio {
       : new URL(baseURL + (baseURL.endsWith('/') && path.startsWith('/') ? path.slice(1) : path));
 
     const defaultQuery = this.defaultQuery();
-    if (!isEmptyObj(defaultQuery)) {
-      query = { ...defaultQuery, ...query };
+    const pathQuery = Object.fromEntries(url.searchParams);
+    if (!isEmptyObj(defaultQuery) || !isEmptyObj(pathQuery)) {
+      query = { ...pathQuery, ...defaultQuery, ...query };
     }
 
     if (typeof query === 'object' && query && !Array.isArray(query)) {
@@ -568,9 +617,9 @@ export class Blooio {
       }
     }
 
-    // If the API asks us to wait a certain amount of time (and it's a reasonable amount),
-    // just do what it says, but otherwise calculate a default
-    if (!(timeoutMillis && 0 <= timeoutMillis && timeoutMillis < 60 * 1000)) {
+    // If the API asks us to wait a certain amount of time, just do what it
+    // says, but otherwise calculate a default
+    if (timeoutMillis === undefined) {
       const maxRetries = options.maxRetries ?? this.maxRetries;
       timeoutMillis = this.calculateDefaultRetryTimeoutMillis(retriesRemaining, maxRetries);
     }
@@ -729,47 +778,102 @@ export class Blooio {
   static toFile = Uploads.toFile;
 
   /**
-   * Account and API key information
+   * Authentication and account information
    */
   me: API.Me = new API.Me(this);
   /**
-   * Contact-related operations
+   * Manage contacts (phone numbers and emails)
    */
   contacts: API.Contacts = new API.Contacts(this);
+  location: API.Location = new API.Location(this);
   /**
-   * Send and manage individual messages
+   * Initiate FaceTime calls
    */
-  messages: API.Messages = new API.Messages(this);
-  config: API.Config = new API.Config(this);
+  facetime: API.Facetime = new API.Facetime(this);
   /**
-   * Bulk/batch operations (stubbed)
+   * Manage contact groups
    */
-  batches: API.Batches = new API.Batches(this);
+  groups: API.Groups = new API.Groups(this);
+  /**
+   * Manage webhook subscriptions
+   */
+  webhooks: API.Webhooks = new API.Webhooks(this);
+  chats: API.Chats = new API.Chats(this);
+  /**
+   * Phone number validation, formatting, and NANPA geocoding. Requires an Enterprise plan (Dedicated Enterprise).
+   */
+  phoneNumbers: API.PhoneNumbers = new API.PhoneNumbers(this);
 }
 
 Blooio.Me = Me;
 Blooio.Contacts = Contacts;
-Blooio.Messages = Messages;
-Blooio.Config = Config;
-Blooio.Batches = Batches;
+Blooio.Location = Location;
+Blooio.Facetime = Facetime;
+Blooio.Groups = Groups;
+Blooio.Webhooks = Webhooks;
+Blooio.Chats = Chats;
+Blooio.PhoneNumbers = PhoneNumbers;
 
 export declare namespace Blooio {
   export type RequestOptions = Opts.RequestOptions;
 
   export { Me as Me, type MeRetrieveResponse as MeRetrieveResponse };
 
-  export { Contacts as Contacts, type ContactCheckCapabilitiesResponse as ContactCheckCapabilitiesResponse };
-
   export {
-    Messages as Messages,
-    type MessageRetrieveResponse as MessageRetrieveResponse,
-    type MessageCancelResponse as MessageCancelResponse,
-    type MessageGetStatusResponse as MessageGetStatusResponse,
-    type MessageSendResponse as MessageSendResponse,
-    type MessageSendParams as MessageSendParams,
+    Contacts as Contacts,
+    type Contact as Contact,
+    type DeleteResponse as DeleteResponse,
+    type Pagination as Pagination,
+    type ContactListResponse as ContactListResponse,
+    type ContactCheckCapabilitiesResponse as ContactCheckCapabilitiesResponse,
+    type ContactCreateParams as ContactCreateParams,
+    type ContactUpdateParams as ContactUpdateParams,
+    type ContactListParams as ContactListParams,
   };
 
-  export { Config as Config };
+  export { Location as Location };
 
-  export { Batches as Batches };
+  export {
+    Facetime as Facetime,
+    type FacetimeInitiateCallResponse as FacetimeInitiateCallResponse,
+    type FacetimeInitiateCallParams as FacetimeInitiateCallParams,
+  };
+
+  export {
+    Groups as Groups,
+    type Group as Group,
+    type GroupCreateResponse as GroupCreateResponse,
+    type GroupUpdateResponse as GroupUpdateResponse,
+    type GroupListResponse as GroupListResponse,
+    type GroupDeleteResponse as GroupDeleteResponse,
+    type GroupCreateParams as GroupCreateParams,
+    type GroupUpdateParams as GroupUpdateParams,
+    type GroupListParams as GroupListParams,
+  };
+
+  export {
+    Webhooks as Webhooks,
+    type Webhook as Webhook,
+    type WebhookCreateResponse as WebhookCreateResponse,
+    type WebhookListResponse as WebhookListResponse,
+    type WebhookDeleteResponse as WebhookDeleteResponse,
+    type WebhookCreateParams as WebhookCreateParams,
+    type WebhookUpdateParams as WebhookUpdateParams,
+  };
+
+  export {
+    Chats as Chats,
+    type LastMessage as LastMessage,
+    type ChatRetrieveResponse as ChatRetrieveResponse,
+    type ChatListResponse as ChatListResponse,
+    type ChatMarkAsReadResponse as ChatMarkAsReadResponse,
+    type ChatShareContactCardResponse as ChatShareContactCardResponse,
+    type ChatListParams as ChatListParams,
+  };
+
+  export {
+    PhoneNumbers as PhoneNumbers,
+    type PhoneNumberBatchCreateResponse as PhoneNumberBatchCreateResponse,
+    type PhoneNumberBatchCreateParams as PhoneNumberBatchCreateParams,
+  };
 }

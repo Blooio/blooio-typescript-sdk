@@ -1,0 +1,579 @@
+// File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+
+import { APIResource } from '../../core/resource';
+import * as MessagesAPI from './messages';
+import * as ContactsAPI from '../contacts/contacts';
+import { APIPromise } from '../../core/api-promise';
+import { buildHeaders } from '../../internal/headers';
+import { RequestOptions } from '../../internal/request-options';
+import { path } from '../../internal/utils/path';
+
+export class Messages extends APIResource {
+  /**
+   * Get details for a specific message.
+   *
+   * @example
+   * ```ts
+   * const message = await client.chats.messages.retrieve(
+   *   'msg_abc123def456',
+   *   { chatId: 'chatId' },
+   * );
+   * ```
+   */
+  retrieve(
+    messageID: string,
+    params: MessageRetrieveParams,
+    options?: RequestOptions,
+  ): APIPromise<MessageRetrieveResponse> {
+    const { chatId } = params;
+    return this._client.get(path`/chats/${chatId}/messages/${messageID}`, options);
+  }
+
+  /**
+   * List all messages in a conversation with optional filtering.
+   *
+   * @example
+   * ```ts
+   * const messages = await client.chats.messages.list('chatId');
+   * ```
+   */
+  list(
+    chatID: string,
+    query: MessageListParams | null | undefined = {},
+    options?: RequestOptions,
+  ): APIPromise<MessageListResponse> {
+    return this._client.get(path`/chats/${chatID}/messages`, { query, ...options });
+  }
+
+  /**
+   * Get delivery status for a specific message.
+   *
+   * @example
+   * ```ts
+   * const response = await client.chats.messages.getStatus(
+   *   'msg_abc123def456',
+   *   { chatId: 'chatId' },
+   * );
+   * ```
+   */
+  getStatus(
+    messageID: string,
+    params: MessageGetStatusParams,
+    options?: RequestOptions,
+  ): APIPromise<MessageGetStatusResponse> {
+    const { chatId } = params;
+    return this._client.get(path`/chats/${chatId}/messages/${messageID}/status`, options);
+  }
+
+  /**
+   * Add or remove a reaction to a message. Supports classic iMessage tapbacks (love,
+   * like, dislike, laugh, emphasize, question) and emoji reactions (e.g. +😂, -😂).
+   *
+   * The messageId can be an explicit message ID (e.g., msg_xxx) or a relative index
+   * (-1 for last message, -2 for second-to-last, etc.). When using relative indices,
+   * you can optionally filter by message direction (inbound/outbound only).
+   *
+   * Emoji reactions require macOS 14 (Sonoma) or later on the device.
+   *
+   * @example
+   * ```ts
+   * const response = await client.chats.messages.react(
+   *   'messageId',
+   *   { chatId: 'chatId', reaction: '+love' },
+   * );
+   * ```
+   */
+  react(
+    messageID: string,
+    params: MessageReactParams,
+    options?: RequestOptions,
+  ): APIPromise<MessageReactResponse> {
+    const { chatId, ...body } = params;
+    return this._client.post(path`/chats/${chatId}/messages/${messageID}/reactions`, { body, ...options });
+  }
+
+  /**
+   * Send a message to a chat. The chatId can be: (1) E.164 phone number, (2) email
+   * address, (3) group ID (grp_xxxx), or (4) comma-separated list of phone/email for
+   * multi-recipient chats. For multi-recipient, an unnamed group is automatically
+   * created or reused if the exact participant combination already exists. For
+   * explicit groups, the group must be linked to an existing iMessage chat.
+   *
+   * @example
+   * ```ts
+   * const response = await client.chats.messages.send('chatId');
+   * ```
+   */
+  send(chatID: string, params: MessageSendParams, options?: RequestOptions): APIPromise<MessageSendResponse> {
+    const { 'Idempotency-Key': idempotencyKey, ...body } = params;
+    return this._client.post(path`/chats/${chatID}/messages`, {
+      body,
+      ...options,
+      headers: buildHeaders([
+        { ...(idempotencyKey != null ? { 'Idempotency-Key': idempotencyKey } : undefined) },
+        options?.headers,
+      ]),
+    });
+  }
+}
+
+/**
+ * Rich-link-preview overrides for URL messages (iMessage URL balloon). All fields
+ * are optional. Only applies when the message text (or the concatenated part text)
+ * is exactly a single http(s) URL. If omitted but the text is a URL, Blooio
+ * auto-fetches the page's Open Graph metadata to generate a preview. If the image
+ * download fails, the send still succeeds — Blooio silently falls back to the
+ * auto-generated preview.
+ */
+export interface LinkPreview {
+  /**
+   * HTTPS URL to an image (png, jpg, webp, gif). Blooio downloads the image
+   * server-side and attaches it as the rich-link hero. Max 16 MB. If the download
+   * fails or returns a non-image MIME, the send falls back to auto-fetched OG
+   * metadata.
+   */
+  image_url?: string;
+
+  /**
+   * Bold title line rendered in the iMessage bubble. Overrides the page's
+   * `<meta property="og:title">`.
+   */
+  title?: string;
+}
+
+export interface Reaction {
+  /**
+   * Whether the reaction is currently active (true) or was removed (false)
+   */
+  is_added?: boolean;
+
+  /**
+   * The reaction value. Classic tapbacks: love, like, dislike, laugh, emphasize,
+   * question. Emoji reactions: the emoji character (e.g. 😂, 👍).
+   */
+  reaction?: string;
+
+  /**
+   * Phone number or email of who sent the reaction. Null when the reaction was sent
+   * by you (outbound).
+   */
+  sender?: string | null;
+
+  /**
+   * Timestamp when the reaction was sent (ms)
+   */
+  time_sent?: number;
+}
+
+export interface MessageRetrieveResponse {
+  attachments?: Array<unknown>;
+
+  chat_id?: string;
+
+  contact?: MessageRetrieveResponse.Contact | null;
+
+  direction?: 'inbound' | 'outbound';
+
+  error?: string | null;
+
+  /**
+   * Organization phone number (from-number) used for this message
+   */
+  internal_id?: string | null;
+
+  message_id?: string;
+
+  protocol?: 'imessage' | 'sms' | 'rcs' | 'non-imessage' | null;
+
+  /**
+   * Reactions on this message (tapbacks and emoji reactions)
+   */
+  reactions?: Array<Reaction>;
+
+  /**
+   * Sender's phone number or email for inbound group messages. Null for outbound
+   * messages and 1-1 chats.
+   */
+  sender?: string | null;
+
+  status?:
+    | 'pending'
+    | 'queued'
+    | 'sent'
+    | 'delivered'
+    | 'failed'
+    | 'cancellation_requested'
+    | 'cancelled'
+    | null;
+
+  text?: string | null;
+
+  time_delivered?: number | null;
+
+  time_sent?: number;
+}
+
+export namespace MessageRetrieveResponse {
+  export interface Contact {
+    contact_id?: string;
+
+    /**
+     * The contact's phone number or email
+     */
+    identifier?: string;
+
+    name?: string | null;
+  }
+}
+
+export interface MessageListResponse {
+  chat_id?: string;
+
+  messages?: Array<MessageListResponse.Message>;
+
+  pagination?: ContactsAPI.Pagination;
+}
+
+export namespace MessageListResponse {
+  export interface Message {
+    attachments?: Array<unknown>;
+
+    direction?: 'inbound' | 'outbound';
+
+    error?: string | null;
+
+    /**
+     * Phone number or email of the contact, or group ID for group messages
+     */
+    external_id?: string;
+
+    /**
+     * Organization phone number (from-number) used for this message
+     */
+    internal_id?: string | null;
+
+    message_id?: string;
+
+    protocol?: 'imessage' | 'sms' | 'rcs' | 'non-imessage' | null;
+
+    /**
+     * Reactions on this message (tapbacks and emoji reactions)
+     */
+    reactions?: Array<MessagesAPI.Reaction>;
+
+    /**
+     * Sender's phone number or email for inbound group messages. Null for outbound
+     * messages and 1-1 chats.
+     */
+    sender?: string | null;
+
+    status?:
+      | 'pending'
+      | 'queued'
+      | 'sent'
+      | 'delivered'
+      | 'failed'
+      | 'cancellation_requested'
+      | 'cancelled'
+      | null;
+
+    text?: string | null;
+
+    time_delivered?: number | null;
+
+    time_sent?: number;
+  }
+}
+
+export interface MessageGetStatusResponse {
+  chat_id?: string;
+
+  direction?: 'inbound' | 'outbound';
+
+  error?: string | null;
+
+  message_id?: string;
+
+  protocol?: 'imessage' | 'sms' | 'rcs' | 'non-imessage' | null;
+
+  status?:
+    | 'pending'
+    | 'queued'
+    | 'sent'
+    | 'delivered'
+    | 'failed'
+    | 'cancellation_requested'
+    | 'cancelled'
+    | null;
+
+  time_delivered?: number | null;
+
+  time_sent?: number;
+}
+
+export interface MessageReactResponse {
+  /**
+   * The action that was performed
+   */
+  action?: 'add' | 'remove';
+
+  /**
+   * The ID of the message that was reacted to
+   */
+  message_id?: string;
+
+  /**
+   * The reaction that was added or removed. For classic tapbacks: love, like,
+   * dislike, laugh, emphasize, question. For emoji reactions: the emoji character
+   * (e.g. 😂, 👍, 🔥).
+   */
+  reaction?: string;
+
+  /**
+   * Whether the reaction was sent successfully
+   */
+  success?: boolean;
+}
+
+/**
+ * Response after sending a message
+ */
+export interface MessageSendResponse {
+  /**
+   * Number of messages sent. Only present in URL-balloon batch mode.
+   */
+  count?: number;
+
+  /**
+   * True if a new unnamed group was created for this multi-recipient message
+   */
+  group_created?: boolean;
+
+  /**
+   * Group ID when sending to multi-recipient (new or existing)
+   */
+  group_id?: string;
+
+  /**
+   * ID of the sent message (single-message sends)
+   */
+  message_id?: string;
+
+  /**
+   * IDs of sent messages. Present when `text` is an array or when `parts` uses
+   * per-part `link_preview` (URL-balloon batch mode).
+   */
+  message_ids?: Array<string>;
+
+  /**
+   * List of participants (present for multi-recipient)
+   */
+  participants?: Array<string>;
+
+  /**
+   * Initial status of the message(s)
+   */
+  status?: 'queued' | 'failed';
+}
+
+export interface MessageRetrieveParams {
+  /**
+   * Chat identifier. Can be: (1) phone number in E.164 format (e.g., +15551234567),
+   * (2) email address, (3) group ID (grp_xxxx), or (4) comma-separated list of phone
+   * numbers/emails for multi-recipient group chats (e.g.,
+   * +15551234567,+15559876543). All values should be URL-encoded.
+   */
+  chatId: string;
+}
+
+export interface MessageListParams {
+  /**
+   * Filter by message direction
+   */
+  direction?: 'inbound' | 'outbound';
+
+  /**
+   * Maximum number of items to return (1-200)
+   */
+  limit?: number;
+
+  /**
+   * Number of items to skip
+   */
+  offset?: number;
+
+  /**
+   * Only messages sent after this timestamp (ms)
+   */
+  since?: number;
+
+  /**
+   * Sort order by time
+   */
+  sort?: 'asc' | 'desc';
+
+  /**
+   * Only messages sent before this timestamp (ms)
+   */
+  until?: number;
+}
+
+export interface MessageGetStatusParams {
+  /**
+   * Chat identifier. Can be: (1) phone number in E.164 format (e.g., +15551234567),
+   * (2) email address, (3) group ID (grp_xxxx), or (4) comma-separated list of phone
+   * numbers/emails for multi-recipient group chats (e.g.,
+   * +15551234567,+15559876543). All values should be URL-encoded.
+   */
+  chatId: string;
+}
+
+export interface MessageReactParams {
+  /**
+   * Path param: Chat identifier. Can be: (1) phone number in E.164 format (e.g.,
+   * +15551234567), (2) email address, (3) group ID (grp_xxxx), or (4)
+   * comma-separated list of phone numbers/emails for multi-recipient group chats
+   * (e.g., +15551234567,+15559876543). All values should be URL-encoded.
+   */
+  chatId: string;
+
+  /**
+   * Body param: The reaction to add or remove. Must be prefixed with `+` to add or
+   * `-` to remove.
+   *
+   * **Classic tapbacks:** `+love`, `-love`, `+like`, `-like`, `+dislike`,
+   * `-dislike`, `+laugh`, `-laugh`, `+emphasize`, `-emphasize`, `+question`,
+   * `-question`
+   *
+   * **Emoji reactions:** Any emoji prefixed with `+` or `-` (e.g. `+😂`, `-😂`,
+   * `+👍`, `-🔥`). Emoji reactions require macOS 14 (Sonoma) or later on the device.
+   */
+  reaction: string;
+
+  /**
+   * Body param: Filter by message direction (only used when messageId is a relative
+   * index like -1, -2)
+   */
+  direction?: 'inbound' | 'outbound';
+}
+
+export interface MessageSendParams {
+  /**
+   * Body param: Array of attachment URLs or objects with url/name
+   */
+  attachments?: Array<string | MessageSendParams.UnionMember1>;
+
+  /**
+   * Body param: E.164 phone number to send from. For Twilio API keys, this is
+   * optional — if omitted, the first assigned Twilio number is auto-selected. For
+   * Blooio (iMessage) API keys, this selects a specific number from your pool. Must
+   * be a number assigned to your API key.
+   */
+  from_number?: string;
+
+  /**
+   * Body param: Rich-link-preview overrides for URL messages (iMessage URL balloon).
+   * All fields are optional. Only applies when the message text (or the concatenated
+   * part text) is exactly a single http(s) URL. If omitted but the text is a URL,
+   * Blooio auto-fetches the page's Open Graph metadata to generate a preview. If the
+   * image download fails, the send still succeeds — Blooio silently falls back to
+   * the auto-generated preview.
+   */
+  link_preview?: LinkPreview | null;
+
+  /**
+   * Body param: Ordered array of message parts. Two modes:
+   *
+   * 1. **Multipart mode** — parts sent as a single unified iMessage bubble (mix of
+   *    text and attachment parts). This is the default.
+   * 2. **URL-balloon batch mode** — triggered when any part has a `link_preview`
+   *    object. Each part becomes its own rich-link-preview iMessage; parts are sent
+   *    sequentially in array order. In batch mode every part must be text-only with
+   *    `text` being a single http(s) URL. Response contains `message_ids[]` +
+   *    `count` instead of `message_id`.
+   */
+  parts?: Array<MessageSendParams.Part>;
+
+  /**
+   * Body param: If true, the contact card (Name & Photo) will be shared with this
+   * message. The contact card is piggybacked onto the outgoing message. Defaults to
+   * false.
+   */
+  share_contact?: boolean;
+
+  /**
+   * Body param: Message text. Can be a single string or array of strings (each
+   * becomes a separate message)
+   */
+  text?: string | Array<string>;
+
+  /**
+   * Body param: Whether to show typing indicator before sending. Defaults to org
+   * preference.
+   */
+  use_typing_indicator?: boolean;
+
+  /**
+   * Header param: Unique key to prevent duplicate message sends. If the same key is
+   * used again, the original message_id and status are returned.
+   */
+  'Idempotency-Key'?: string;
+}
+
+export namespace MessageSendParams {
+  export interface UnionMember1 {
+    url: string;
+
+    name?: string;
+  }
+
+  export interface Part {
+    /**
+     * Rich-link-preview overrides for URL messages (iMessage URL balloon). All fields
+     * are optional. Only applies when the message text (or the concatenated part text)
+     * is exactly a single http(s) URL. If omitted but the text is a URL, Blooio
+     * auto-fetches the page's Open Graph metadata to generate a preview. If the image
+     * download fails, the send still succeeds — Blooio silently falls back to the
+     * auto-generated preview.
+     */
+    link_preview?: MessagesAPI.LinkPreview | null;
+
+    /**
+     * Participant phone number or email to @-mention. Only valid with 'text'. The
+     * entire text of the part is rendered as the mention.
+     */
+    mention?: string;
+
+    /**
+     * Filename for the attachment. Only valid with 'url'.
+     */
+    name?: string;
+
+    /**
+     * Text content for this part. Mutually exclusive with 'url'.
+     */
+    text?: string;
+
+    /**
+     * URL to an attachment for this part. Mutually exclusive with 'text'.
+     */
+    url?: string;
+  }
+}
+
+export declare namespace Messages {
+  export {
+    type LinkPreview as LinkPreview,
+    type Reaction as Reaction,
+    type MessageRetrieveResponse as MessageRetrieveResponse,
+    type MessageListResponse as MessageListResponse,
+    type MessageGetStatusResponse as MessageGetStatusResponse,
+    type MessageReactResponse as MessageReactResponse,
+    type MessageSendResponse as MessageSendResponse,
+    type MessageRetrieveParams as MessageRetrieveParams,
+    type MessageListParams as MessageListParams,
+    type MessageGetStatusParams as MessageGetStatusParams,
+    type MessageReactParams as MessageReactParams,
+    type MessageSendParams as MessageSendParams,
+  };
+}

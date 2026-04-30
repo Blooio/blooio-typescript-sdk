@@ -1,10 +1,10 @@
 // File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
-import { APIPromise } from '@blooio/sdk/core/api-promise';
+import { APIPromise } from 'blooio/core/api-promise';
 
 import util from 'node:util';
-import Blooio from '@blooio/sdk';
-import { APIUserAbortError } from '@blooio/sdk';
+import Blooio from 'blooio';
+import { APIUserAbortError } from 'blooio';
 const defaultFetch = fetch;
 
 describe('instantiate client', () => {
@@ -322,13 +322,13 @@ describe('instantiate client', () => {
     test('empty env variable', () => {
       process.env['BLOOIO_BASE_URL'] = ''; // empty
       const client = new Blooio({ apiKey: 'My API Key' });
-      expect(client.baseURL).toEqual('https://backend.blooio.com');
+      expect(client.baseURL).toEqual('https://backend.blooio.com/v2/api');
     });
 
     test('blank env variable', () => {
       process.env['BLOOIO_BASE_URL'] = '  '; // blank
       const client = new Blooio({ apiKey: 'My API Key' });
-      expect(client.baseURL).toEqual('https://backend.blooio.com');
+      expect(client.baseURL).toEqual('https://backend.blooio.com/v2/api');
     });
 
     test('in request options', () => {

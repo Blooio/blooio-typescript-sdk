@@ -1,18 +1,21 @@
 # Blooio TypeScript API Library
 
-[![NPM version](<https://img.shields.io/npm/v/@blooio/sdk.svg?label=npm%20(stable)>)](https://npmjs.org/package/@blooio/sdk) ![npm bundle size](https://img.shields.io/bundlephobia/minzip/@blooio/sdk)
+[![NPM version](<https://img.shields.io/npm/v/blooio.svg?label=npm%20(stable)>)](https://npmjs.org/package/blooio) ![npm bundle size](https://img.shields.io/bundlephobia/minzip/blooio)
 
 This library provides convenient access to the Blooio REST API from server-side TypeScript or JavaScript.
 
-The full API of this library can be found in [api.md](api.md).
+The REST API documentation can be found on [blooio.com](https://blooio.com). The full API of this library can be found in [api.md](api.md).
 
 It is generated with [Stainless](https://www.stainless.com/).
 
 ## Installation
 
 ```sh
-npm install @blooio/sdk
+npm install git+ssh://git@github.com:stainless-sdks/blooio-typescript.git
 ```
+
+> [!NOTE]
+> Once this package is [published to npm](https://www.stainless.com/docs/guides/publish), this will become: `npm install blooio`
 
 ## Usage
 
@@ -20,7 +23,7 @@ The full API of this library can be found in [api.md](api.md).
 
 <!-- prettier-ignore -->
 ```js
-import Blooio from '@blooio/sdk';
+import Blooio from 'blooio';
 
 const client = new Blooio({
   apiKey: process.env['BLOOIO_API_KEY'], // This is the default and can be omitted
@@ -28,7 +31,7 @@ const client = new Blooio({
 
 const me = await client.me.retrieve();
 
-console.log(me.valid);
+console.log(me.organization_id);
 ```
 
 ### Request & Response types
@@ -37,7 +40,7 @@ This library includes TypeScript definitions for all request params and response
 
 <!-- prettier-ignore -->
 ```ts
-import Blooio from '@blooio/sdk';
+import Blooio from 'blooio';
 
 const client = new Blooio({
   apiKey: process.env['BLOOIO_API_KEY'], // This is the default and can be omitted
@@ -47,6 +50,39 @@ const me: Blooio.MeRetrieveResponse = await client.me.retrieve();
 ```
 
 Documentation for each method, request param, and response field are available in docstrings and will appear on hover in most modern editors.
+
+## File uploads
+
+Request parameters that correspond to file uploads can be passed in many different forms:
+
+- `File` (or an object with the same structure)
+- a `fetch` `Response` (or an object with the same structure)
+- an `fs.ReadStream`
+- the return value of our `toFile` helper
+
+```ts
+import fs from 'fs';
+import Blooio, { toFile } from 'blooio';
+
+const client = new Blooio();
+
+// If you have access to Node `fs` we recommend using `fs.createReadStream()`:
+await client.groups.icon.set('grp_abc123def456', { icon: fs.createReadStream('/path/to/file') });
+
+// Or if you have the web `File` API you can pass a `File` instance:
+await client.groups.icon.set('grp_abc123def456', { icon: new File(['my bytes'], 'file') });
+
+// You can also pass a `fetch` `Response`:
+await client.groups.icon.set('grp_abc123def456', { icon: await fetch('https://somesite/file') });
+
+// Finally, if none of the above are convenient, you can use our `toFile` helper:
+await client.groups.icon.set('grp_abc123def456', {
+  icon: await toFile(Buffer.from('my bytes'), 'file'),
+});
+await client.groups.icon.set('grp_abc123def456', {
+  icon: await toFile(new Uint8Array([0, 1, 2]), 'file'),
+});
+```
 
 ## Handling errors
 
@@ -142,7 +178,7 @@ console.log(response.statusText); // access the underlying Response object
 
 const { data: me, response: raw } = await client.me.retrieve().withResponse();
 console.log(raw.headers.get('X-My-Header'));
-console.log(me.valid);
+console.log(me.organization_id);
 ```
 
 ### Logging
@@ -159,7 +195,7 @@ The log level can be configured in two ways:
 2. Using the `logLevel` client option (overrides the environment variable if set)
 
 ```ts
-import Blooio from '@blooio/sdk';
+import Blooio from 'blooio';
 
 const client = new Blooio({
   logLevel: 'debug', // Show all log messages
@@ -187,7 +223,7 @@ When providing a custom logger, the `logLevel` option still controls which messa
 below the configured level will not be sent to your logger.
 
 ```ts
-import Blooio from '@blooio/sdk';
+import Blooio from 'blooio';
 import pino from 'pino';
 
 const logger = pino();
@@ -256,7 +292,7 @@ globalThis.fetch = fetch;
 Or pass it to the client:
 
 ```ts
-import Blooio from '@blooio/sdk';
+import Blooio from 'blooio';
 import fetch from 'my-fetch';
 
 const client = new Blooio({ fetch });
@@ -267,7 +303,7 @@ const client = new Blooio({ fetch });
 If you want to set custom `fetch` options without overriding the `fetch` function, you can provide a `fetchOptions` object when instantiating the client or making a request. (Request-specific options override client options.)
 
 ```ts
-import Blooio from '@blooio/sdk';
+import Blooio from 'blooio';
 
 const client = new Blooio({
   fetchOptions: {
@@ -284,7 +320,7 @@ options to requests:
 <img src="https://raw.githubusercontent.com/stainless-api/sdk-assets/refs/heads/main/node.svg" align="top" width="18" height="21"> **Node** <sup>[[docs](https://github.com/nodejs/undici/blob/main/docs/docs/api/ProxyAgent.md#example---proxyagent-with-fetch)]</sup>
 
 ```ts
-import Blooio from '@blooio/sdk';
+import Blooio from 'blooio';
 import * as undici from 'undici';
 
 const proxyAgent = new undici.ProxyAgent('http://localhost:8888');
@@ -298,7 +334,7 @@ const client = new Blooio({
 <img src="https://raw.githubusercontent.com/stainless-api/sdk-assets/refs/heads/main/bun.svg" align="top" width="18" height="21"> **Bun** <sup>[[docs](https://bun.sh/guides/http/proxy)]</sup>
 
 ```ts
-import Blooio from '@blooio/sdk';
+import Blooio from 'blooio';
 
 const client = new Blooio({
   fetchOptions: {
@@ -310,7 +346,7 @@ const client = new Blooio({
 <img src="https://raw.githubusercontent.com/stainless-api/sdk-assets/refs/heads/main/deno.svg" align="top" width="18" height="21"> **Deno** <sup>[[docs](https://docs.deno.com/api/deno/~/Deno.createHttpClient)]</sup>
 
 ```ts
-import Blooio from 'npm:@blooio/sdk';
+import Blooio from 'npm:blooio';
 
 const httpClient = Deno.createHttpClient({ proxy: { url: 'http://localhost:8888' } });
 const client = new Blooio({
@@ -332,7 +368,7 @@ This package generally follows [SemVer](https://semver.org/spec/v2.0.0.html) con
 
 We take backwards-compatibility seriously and work hard to ensure you can rely on a smooth upgrade experience.
 
-We are keen for your feedback; please open an [issue](https://www.github.com/Blooio/blooio-typescript-sdk/issues) with questions, bugs, or suggestions.
+We are keen for your feedback; please open an [issue](https://www.github.com/stainless-sdks/blooio-typescript/issues) with questions, bugs, or suggestions.
 
 ## Requirements
 
