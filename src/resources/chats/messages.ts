@@ -461,7 +461,7 @@ export interface MessageSendParams {
   /**
    * Body param: Array of attachment URLs or objects with url/name
    */
-  attachments?: Array<string | MessageSendParams.UnionMember1>;
+  attachments?: Array<string | MessageSendParams.UnionObjectVariant1>;
 
   /**
    * Body param: E.164 phone number to send from. For Twilio API keys, this is
@@ -521,7 +521,7 @@ export interface MessageSendParams {
 }
 
 export namespace MessageSendParams {
-  export interface UnionMember1 {
+  export interface UnionObjectVariant1 {
     url: string;
 
     name?: string;
