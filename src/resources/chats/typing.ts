@@ -13,6 +13,10 @@ export class Typing extends APIResource {
    * Start the typing indicator for a chat. The indicator shows the recipient that
    * you are typing.
    *
+   * **RCS limitation:** typing indicators are only delivered for iMessage chats —
+   * the RCS protocol does not carry composing state. Calls against RCS-routed chats
+   * return 200 with a `warning` field and have no visible effect on the recipient.
+   *
    * @example
    * ```ts
    * const typingResponse = await client.chats.typing.start(
@@ -26,6 +30,10 @@ export class Typing extends APIResource {
 
   /**
    * Stop the typing indicator for a chat.
+   *
+   * **RCS limitation:** typing indicators are only delivered for iMessage chats —
+   * the RCS protocol does not carry composing state. Calls against RCS-routed chats
+   * return 200 with a `warning` field and have no visible effect on the recipient.
    *
    * @example
    * ```ts
@@ -59,6 +67,13 @@ export interface TypingResponse {
    * Whether typing indicator is active
    */
   typing?: boolean;
+
+  /**
+   * Present when the request was accepted but the indicator could not be delivered.
+   * The most common reason is that the chat last routed via RCS, which does not
+   * carry composing state.
+   */
+  warning?: string;
 }
 
 export declare namespace Typing {
