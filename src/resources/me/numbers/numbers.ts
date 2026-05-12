@@ -38,6 +38,19 @@ export namespace NumberListResponse {
     last_active?: string | null;
 
     phone_number?: string;
+
+    /**
+     * Plan type the underlying allocation runs on. Sourced directly from
+     * `allocation_pool.type` — the enum mirrors the DB `CHECK` constraint (see
+     * migration 2026-05-09-inbound-plan.sql), so any value here is also a valid type
+     * stored in the database. `inbound` numbers are reply-only — outbound to a
+     * recipient (a contact for 1:1 chats, the group for group chats) requires that
+     * recipient to have messaged the number first (otherwise the send returns
+     * `403 inbound_only_no_prior_inbound`). `null` indicates the underlying allocation
+     * predates the type column or is unattributed; clients should treat `null` the
+     * same as `dedicated` for routing decisions.
+     */
+    plan_kind?: 'shared' | 'dedicated' | 'inbound' | 'trial' | '2fa' | null;
   }
 }
 
