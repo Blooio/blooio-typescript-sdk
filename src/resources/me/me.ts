@@ -85,6 +85,12 @@ export namespace MeRetrieveResponse {
      * Phone number assigned to this device (E.164 format)
      */
     phone_number?: string | null;
+
+    /**
+     * Plan type the underlying allocation runs on. `inbound` numbers are reply-only —
+     * see `/me/numbers` for details.
+     */
+    plan_kind?: 'shared' | 'dedicated' | 'inbound' | 'trial' | '2fa' | null;
   }
 
   export interface Organization {
