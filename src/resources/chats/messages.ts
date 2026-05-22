@@ -106,6 +106,20 @@ export class Messages extends APIResource {
    * message is delivered without the animation. Effects are not supported in
    * multipart (`parts`) mode.
    *
+   * **Threaded replies (iMessage inline reply):** set the optional `reply_to` field
+   * to send the outgoing message as a reply to a specific earlier message. Two
+   * shapes are accepted: `{ "message_id": "msg_…" }` references a Blooio-minted
+   * message in the same chat (most common — the message*id returned by an earlier
+   * send or surfaced on a `message.received` webhook), or
+   * `{ "guid": "…", "part_index": 0 }` references the raw iMessage GUID for the rare
+   * case where the parent wasn't recorded by Blooio. The reply must target the same
+   * chat and the same from-number as the new send, and the parent must be no older
+   * than 30 days (the iMessage on-device retention horizon). Reply support is
+   * iMessage-only and is rejected on Twilio, dashboard-Twilio, and hybrid send
+   * paths; it's also rejected on multi-message fan-outs (`text` array or per-part
+   * URL-balloon batch). See the `400` responses for the full set of
+   * `reply_target*\*` error codes.
+   *
    * @example
    * ```ts
    * const response = await client.chats.messages.send('chatId');
@@ -198,6 +212,12 @@ export interface MessageRetrieveResponse {
   reactions?: Array<Reaction>;
 
   /**
+   * Inline-reply parent reference. Identical shape on `message.received` webhooks
+   * and on every GET endpoint that returns a single message or a list of messages.
+   */
+  reply_to?: MessageRetrieveResponse.ReplyTo | null;
+
+  /**
    * Sender's phone number or email for inbound group messages. Null for outbound
    * messages and 1-1 chats.
    */
@@ -230,6 +250,30 @@ export namespace MessageRetrieveResponse {
     identifier?: string;
 
     name?: string | null;
+  }
+
+  /**
+   * Inline-reply parent reference. Identical shape on `message.received` webhooks
+   * and on every GET endpoint that returns a single message or a list of messages.
+   */
+  export interface ReplyTo {
+    /**
+     * The raw iMessage GUID of the parent. Always populated on real inline replies;
+     * the on-device record-of-truth identifier that survives even when `message_id`
+     * cannot be resolved.
+     */
+    guid: string | null;
+
+    /**
+     * The Blooio `message_id` of the parent message. NULL when the parent isn't in our
+     * `messages` table (e.g., the original was sent from outside Blooio's pipeline).
+     */
+    message_id: string | null;
+
+    /**
+     * Which part of the parent was replied to. 0 for the common single-part case.
+     */
+    part_index: number;
   }
 }
 
@@ -269,6 +313,12 @@ export namespace MessageListResponse {
     reactions?: Array<MessagesAPI.Reaction>;
 
     /**
+     * Inline-reply parent reference. Identical shape on `message.received` webhooks
+     * and on every GET endpoint that returns a single message or a list of messages.
+     */
+    reply_to?: Message.ReplyTo | null;
+
+    /**
      * Sender's phone number or email for inbound group messages. Null for outbound
      * messages and 1-1 chats.
      */
@@ -289,6 +339,32 @@ export namespace MessageListResponse {
     time_delivered?: number | null;
 
     time_sent?: number;
+  }
+
+  export namespace Message {
+    /**
+     * Inline-reply parent reference. Identical shape on `message.received` webhooks
+     * and on every GET endpoint that returns a single message or a list of messages.
+     */
+    export interface ReplyTo {
+      /**
+       * The raw iMessage GUID of the parent. Always populated on real inline replies;
+       * the on-device record-of-truth identifier that survives even when `message_id`
+       * cannot be resolved.
+       */
+      guid: string | null;
+
+      /**
+       * The Blooio `message_id` of the parent message. NULL when the parent isn't in our
+       * `messages` table (e.g., the original was sent from outside Blooio's pipeline).
+       */
+      message_id: string | null;
+
+      /**
+       * Which part of the parent was replied to. 0 for the common single-part case.
+       */
+      part_index: number;
+    }
   }
 }
 
@@ -371,6 +447,14 @@ export interface MessageSendResponse {
    * per-part `link_preview` (URL-balloon batch mode).
    */
   message_ids?: Array<string>;
+
+  /**
+   * Present (and `true`) only when `reply_to.guid` was supplied without a
+   * `message_id` and the GUID didn't map to any Blooio-minted row. The send still
+   * proceeds and the device may still thread it; this flag signals that Blooio
+   * couldn't link the new message to a known parent.
+   */
+  parent_unresolved?: boolean;
 
   /**
    * List of participants (present for multi-recipient)
@@ -553,6 +637,16 @@ export interface MessageSendParams {
   parts?: Array<MessageSendParams.Part>;
 
   /**
+   * Body param: Inline-reply target on `POST /chats/{chatId}/messages`. Pass either
+   * `message_id` (preferred — references a Blooio-minted message) or `guid` (raw
+   * iMessage GUID, useful for replying to messages received before the row was
+   * minted in Blooio). The new send is dispatched to Lava with the resolved
+   * `selectedMessageGuid` + `partIndex`, which iMessage renders as an inline reply
+   * on the recipient's device.
+   */
+  reply_to?: MessageSendParams.ReplyTo | null;
+
+  /**
    * Body param: If true, the contact card (Name & Photo) will be shared with this
    * message. The contact card is piggybacked onto the outgoing message. Defaults to
    * false.
@@ -616,6 +710,37 @@ export namespace MessageSendParams {
      * URL to an attachment for this part. Mutually exclusive with 'text'.
      */
     url?: string;
+  }
+
+  /**
+   * Inline-reply target on `POST /chats/{chatId}/messages`. Pass either `message_id`
+   * (preferred — references a Blooio-minted message) or `guid` (raw iMessage GUID,
+   * useful for replying to messages received before the row was minted in Blooio).
+   * The new send is dispatched to Lava with the resolved `selectedMessageGuid` +
+   * `partIndex`, which iMessage renders as an inline reply on the recipient's
+   * device.
+   */
+  export interface ReplyTo {
+    /**
+     * Raw iMessage GUID of the parent. When supplied without a `message_id`, Blooio
+     * attempts to look up the parent via `provider_message_guid`; if the parent isn't
+     * in our table the send still proceeds (Lava will thread on the device when
+     * possible) and the response carries `parent_unresolved: true`.
+     */
+    guid?: string;
+
+    /**
+     * Blooio `message_id` of the parent. Must belong to the same chat, same
+     * from-number, and be no older than 30 days. Returns 404 `reply_target_not_found`
+     * if unknown.
+     */
+    message_id?: string;
+
+    /**
+     * Which part of the parent to reply to. Defaults to 0 (covers the 99% case of
+     * replying to a single-part text message).
+     */
+    part_index?: number;
   }
 }
 
