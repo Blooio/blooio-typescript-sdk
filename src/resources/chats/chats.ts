@@ -115,16 +115,6 @@ export interface ChatRetrieveResponse {
   id?: string;
 
   /**
-   * Identifier for the active chat background
-   */
-  background_id?: string | null;
-
-  /**
-   * Public URL of the chat background image (if one has been set via the API)
-   */
-  background_url?: string | null;
-
-  /**
    * Contact info (only for non-group chats)
    */
   contact?: ChatRetrieveResponse.Contact | null;
@@ -193,16 +183,6 @@ export namespace ChatListResponse {
      * Chat identifier (phone number, email, or group ID)
      */
     id?: string;
-
-    /**
-     * Identifier for the active chat background
-     */
-    background_id?: string | null;
-
-    /**
-     * Public URL of the chat background image (if one has been set via the API)
-     */
-    background_url?: string | null;
 
     /**
      * Contact info (only for non-group chats)
