@@ -8,7 +8,7 @@ import { multipartFormRequestOptions } from '../../internal/uploads';
 import { path } from '../../internal/utils/path';
 
 /**
- * Set, get, and remove conversation backgrounds
+ * View conversations and messages
  */
 export class Background extends APIResource {
   /**
@@ -43,9 +43,21 @@ export class Background extends APIResource {
    * Set or update the background image for a conversation. Works for both 1-on-1 and
    * group chats.
    *
-   * The uploaded image is converted into a PosterKit-compatible archive and applied
-   * to the iMessage conversation on the linked device. Supported formats: JPEG, PNG,
-   * GIF, WebP, HEIC/HEIF. Maximum file size: 10 MB.
+   * The request body must be `multipart/form-data` with a single `background` field
+   * containing the **raw image file bytes** (not a URL or base64 string). Supported
+   * formats: JPEG, PNG, GIF, WebP, HEIC/HEIF. Maximum file size: 10 MB.
+   *
+   * **Example with curl** — note the `@` prefix that tells curl to read the file
+   * from disk:
+   *
+   * ```bash
+   * curl -X PUT "https://backend.blooio.com/v2/api/chats/%2B15551234567/background" \
+   *   -H "Authorization: Bearer YOUR_API_KEY" \
+   *   -F "background=@/path/to/image.jpg;type=image/jpeg"
+   * ```
+   *
+   * When the chat id is a phone number, percent-encode the leading `+` as `%2B` in
+   * the URL path.
    *
    * @example
    * ```ts
@@ -77,13 +89,6 @@ export interface ChatBackgroundResponse {
   background_id?: string | null;
 
   /**
-   * Public URL of the persisted background image stored in R2. Returned after a
-   * successful PUT and on GET when a background has been set through the API. May be
-   * null if persistence failed or the background was set outside of the API.
-   */
-  background_url?: string | null;
-
-  /**
    * Version number of the background (for cache invalidation)
    */
   background_version?: number | null;
@@ -106,7 +111,10 @@ export interface ChatBackgroundResponse {
 
 export interface BackgroundSetParams {
   /**
-   * The image file to set as the chat background
+   * Binary image file upload (JPEG, PNG, GIF, WebP, HEIC/HEIF, max 10 MB). Send as a
+   * file field in `multipart/form-data` — e.g. `-F "background=@/path/to/image.jpg"`
+   * with curl, or a `File`/`Blob` appended to `FormData` in JavaScript. Do NOT send
+   * a URL or base64 string.
    */
   background: Uploadable;
 }
