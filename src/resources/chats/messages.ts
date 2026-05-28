@@ -73,8 +73,6 @@ export class Messages extends APIResource {
    * (-1 for last message, -2 for second-to-last, etc.). When using relative indices,
    * you can optionally filter by message direction (inbound/outbound only).
    *
-   * Emoji reactions require macOS 14 (Sonoma) or later on the device.
-   *
    * @example
    * ```ts
    * const response = await client.chats.messages.react(
@@ -453,7 +451,7 @@ export interface MessageReactParams {
    * `-question`
    *
    * **Emoji reactions:** Any emoji prefixed with `+` or `-` (e.g. `+😂`, `-😂`,
-   * `+👍`, `-🔥`). Emoji reactions require macOS 14 (Sonoma) or later on the device.
+   * `+👍`, `-🔥`).
    */
   reaction: string;
 
