@@ -553,7 +553,8 @@ export interface MessageSendParams {
   /**
    * Body param: If true, the contact card (Name & Photo) will be shared with this
    * message. The contact card is piggybacked onto the outgoing message. Defaults to
-   * false.
+   * false. ⚠️ Only available on **Dedicated Commercial** and **Dedicated
+   * Enterprise** plans — other plans receive a `403`.
    */
   share_contact?: boolean;
 
