@@ -123,12 +123,16 @@ export interface MemberRemoveResponse {
 
 export interface MemberListParams {
   /**
-   * Maximum number of items to return (1-200)
+   * Maximum number of items to return in a single response. Must be between 1 and
+   * 200; defaults to 50. Use together with `offset` to page through large result
+   * sets.
    */
   limit?: number;
 
   /**
-   * Number of items to skip
+   * Number of items to skip before returning results. Combine with `limit` for
+   * page-based pagination (e.g. `offset=50&limit=50` returns the second page).
+   * Defaults to 0.
    */
   offset?: number;
 }
@@ -142,7 +146,8 @@ export interface MemberAddParams {
 
 export interface MemberRemoveParams {
   /**
-   * Group ID
+   * Unique identifier of the group chat, prefixed with `grp_` (e.g.
+   * `grp_abc123def456`). Returned by the create-group and list-groups endpoints.
    */
   groupId: string;
 }

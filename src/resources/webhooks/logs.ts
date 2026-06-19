@@ -305,7 +305,9 @@ export namespace LogReplayResponse {
 
 export interface LogListParams {
   /**
-   * Maximum number of items to return (1-200)
+   * Maximum number of items to return in a single response. Must be between 1 and
+   * 200; defaults to 50. Use together with `offset` to page through large result
+   * sets.
    */
   limit?: number;
 
@@ -320,7 +322,9 @@ export interface LogListParams {
   min_status?: number;
 
   /**
-   * Number of items to skip
+   * Number of items to skip before returning results. Combine with `limit` for
+   * page-based pagination (e.g. `offset=50&limit=50` returns the second page).
+   * Defaults to 0.
    */
   offset?: number;
 
@@ -337,7 +341,8 @@ export interface LogListParams {
 
 export interface LogReplayParams {
   /**
-   * Webhook ID
+   * Unique identifier of the webhook subscription, prefixed with `wh_` (e.g.
+   * `wh_abc123def456`). Returned when you create or list webhooks.
    */
   webhookId: string;
 }
