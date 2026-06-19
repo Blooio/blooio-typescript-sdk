@@ -246,12 +246,16 @@ export interface GroupUpdateParams {
 
 export interface GroupListParams {
   /**
-   * Maximum number of items to return (1-200)
+   * Maximum number of items to return in a single response. Must be between 1 and
+   * 200; defaults to 50. Use together with `offset` to page through large result
+   * sets.
    */
   limit?: number;
 
   /**
-   * Number of items to skip
+   * Number of items to skip before returning results. Combine with `limit` for
+   * page-based pagination (e.g. `offset=50&limit=50` returns the second page).
+   * Defaults to 0.
    */
   offset?: number;
 
