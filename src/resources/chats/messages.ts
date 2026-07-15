@@ -202,7 +202,15 @@ export interface MessageRetrieveResponse {
 
   message_id?: string;
 
-  protocol?: 'imessage' | 'sms' | 'rcs' | 'non-imessage' | null;
+  /**
+   * Transport used to carry the message; never null. `pending` = accepted and
+   * dispatched, wire service not resolved yet (settles within seconds of send);
+   * `imessage` = delivered over iMessage (blue bubble); `rcs` = delivered over RCS;
+   * `sms` = fell back to SMS/MMS (green bubble); `unknown` = accepted by the carrier
+   * but the wire service could not be resolved before the tracking window closed
+   * (see `error`).
+   */
+  protocol?: 'pending' | 'unknown' | 'imessage' | 'sms' | 'rcs';
 
   /**
    * Reactions on this message (tapbacks and emoji reactions)
@@ -221,6 +229,16 @@ export interface MessageRetrieveResponse {
    */
   sender?: string | null;
 
+  /**
+   * Delivery lifecycle state. `pending` = persisted and being prepared for dispatch;
+   * `queued` = accepted and waiting to be handed to Apple/the carrier; `sent` =
+   * handed off to Apple/the carrier (protocol resolution happens around here);
+   * `delivered` = a delivery receipt was received; `failed` = could not be delivered
+   * (see `error`); `cancellation_requested` = a cancel was requested for a
+   * still-queued message (best-effort); `cancelled` = cancelled before dispatch.
+   * Inbound messages are surfaced via webhooks with `received`; read receipts arrive
+   * as a `read` event.
+   */
   status?:
     | 'pending'
     | 'queued'
@@ -303,7 +321,15 @@ export namespace MessageListResponse {
 
     message_id?: string;
 
-    protocol?: 'imessage' | 'sms' | 'rcs' | 'non-imessage' | null;
+    /**
+     * Transport used to carry the message; never null. `pending` = accepted and
+     * dispatched, wire service not resolved yet (settles within seconds of send);
+     * `imessage` = delivered over iMessage (blue bubble); `rcs` = delivered over RCS;
+     * `sms` = fell back to SMS/MMS (green bubble); `unknown` = accepted by the carrier
+     * but the wire service could not be resolved before the tracking window closed
+     * (see `error`).
+     */
+    protocol?: 'pending' | 'unknown' | 'imessage' | 'sms' | 'rcs';
 
     /**
      * Reactions on this message (tapbacks and emoji reactions)
@@ -322,6 +348,16 @@ export namespace MessageListResponse {
      */
     sender?: string | null;
 
+    /**
+     * Delivery lifecycle state. `pending` = persisted and being prepared for dispatch;
+     * `queued` = accepted and waiting to be handed to Apple/the carrier; `sent` =
+     * handed off to Apple/the carrier (protocol resolution happens around here);
+     * `delivered` = a delivery receipt was received; `failed` = could not be delivered
+     * (see `error`); `cancellation_requested` = a cancel was requested for a
+     * still-queued message (best-effort); `cancelled` = cancelled before dispatch.
+     * Inbound messages are surfaced via webhooks with `received`; read receipts arrive
+     * as a `read` event.
+     */
     status?:
       | 'pending'
       | 'queued'
@@ -375,8 +411,26 @@ export interface MessageGetStatusResponse {
 
   message_id?: string;
 
-  protocol?: 'imessage' | 'sms' | 'rcs' | 'non-imessage' | null;
+  /**
+   * Transport used to carry the message; never null. `pending` = accepted and
+   * dispatched, wire service not resolved yet (settles within seconds of send);
+   * `imessage` = delivered over iMessage (blue bubble); `rcs` = delivered over RCS;
+   * `sms` = fell back to SMS/MMS (green bubble); `unknown` = accepted by the carrier
+   * but the wire service could not be resolved before the tracking window closed
+   * (see `error`).
+   */
+  protocol?: 'pending' | 'unknown' | 'imessage' | 'sms' | 'rcs';
 
+  /**
+   * Delivery lifecycle state. `pending` = persisted and being prepared for dispatch;
+   * `queued` = accepted and waiting to be handed to Apple/the carrier; `sent` =
+   * handed off to Apple/the carrier (protocol resolution happens around here);
+   * `delivered` = a delivery receipt was received; `failed` = could not be delivered
+   * (see `error`); `cancellation_requested` = a cancel was requested for a
+   * still-queued message (best-effort); `cancelled` = cancelled before dispatch.
+   * Inbound messages are surfaced via webhooks with `received`; read receipts arrive
+   * as a `read` event.
+   */
   status?:
     | 'pending'
     | 'queued'
@@ -460,7 +514,10 @@ export interface MessageSendResponse {
   participants?: Array<string>;
 
   /**
-   * Initial status of the message(s)
+   * Initial status of the message(s). `queued` = accepted for delivery (the normal
+   * 202 result); `failed` = rejected before dispatch. Subsequent transitions (`sent`
+   * → `delivered`, or `failed`) are reported via the status endpoint and
+   * `message.status` webhooks.
    */
   status?: 'queued' | 'failed';
 }

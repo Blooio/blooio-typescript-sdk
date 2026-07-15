@@ -152,9 +152,14 @@ export namespace LogListResponse {
       participants?: Array<EventBody.Participant> | null;
 
       /**
-       * Message protocol
+       * Transport used to carry the message; never null. `pending` = accepted and
+       * dispatched, wire service not resolved yet (settles within seconds of send);
+       * `imessage` = delivered over iMessage (blue bubble); `rcs` = delivered over RCS;
+       * `sms` = fell back to SMS/MMS (green bubble); `unknown` = accepted by the carrier
+       * but the wire service could not be resolved before the tracking window closed
+       * (see `error`).
        */
-      protocol?: 'imessage' | 'sms' | 'rcs' | 'non-imessage' | null;
+      protocol?: 'pending' | 'unknown' | 'imessage' | 'sms' | 'rcs';
 
       /**
        * Timestamp when message was read (for message.read events)
@@ -172,7 +177,11 @@ export namespace LogListResponse {
       sent_at?: number | null;
 
       /**
-       * Message status
+       * Message status carried by the event. `queued` / `pending` = accepted, not yet
+       * handed off; `sent` = handed to Apple/the carrier; `delivered` = a delivery
+       * receipt was received; `read` = a read receipt was received (iMessage, when the
+       * recipient has read receipts on); `failed` = delivery failed (see `error_code` /
+       * `error_message`); `received` = an inbound message arrived.
        */
       status?: 'queued' | 'pending' | 'sent' | 'delivered' | 'failed' | 'read' | 'received';
 
