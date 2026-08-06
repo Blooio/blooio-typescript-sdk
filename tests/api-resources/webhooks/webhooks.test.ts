@@ -25,7 +25,6 @@ describe('resource webhooks', () => {
     const response = await client.webhooks.create({
       webhook_url: 'https://example.com/webhook',
       valid_until: 0,
-      webhook_type: 'message',
     });
   });
 
