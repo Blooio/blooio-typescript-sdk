@@ -17,14 +17,13 @@ export class Webhooks extends APIResource {
   logs: LogsAPI.Logs = new LogsAPI.Logs(this._client);
 
   /**
-   * Create a new webhook subscription.
+   * Registration through this endpoint is closed and returns 410. Use POST
+   * /v4/webhooks to create new subscriptions. Existing webhooks keep working and can
+   * still be listed, updated, and deleted here. Re-posting the URL of a webhook that
+   * already exists still returns 200 with that webhook, so idempotent provisioning
+   * scripts continue to work unchanged.
    *
-   * @example
-   * ```ts
-   * const webhook = await client.webhooks.create({
-   *   webhook_url: 'https://example.com/webhook',
-   * });
-   * ```
+   * @deprecated
    */
   create(body: WebhookCreateParams, options?: RequestOptions): APIPromise<WebhookCreateResponse> {
     return this._client.post('/webhooks', { body, ...options });
@@ -145,19 +144,15 @@ export interface WebhookDeleteResponse {
 
 export interface WebhookCreateParams {
   /**
-   * URL to receive webhook events
+   * URL of an existing webhook, for the idempotent 200 response. A URL that does not
+   * already exist returns 410.
    */
   webhook_url: string;
 
   /**
-   * Expiration timestamp (-1 for no expiration)
+   * Ignored. Retained so existing request bodies stay valid.
    */
   valid_until?: number;
-
-  /**
-   * Type of events to receive
-   */
-  webhook_type?: 'message' | 'status' | 'all';
 }
 
 export interface WebhookUpdateParams {
