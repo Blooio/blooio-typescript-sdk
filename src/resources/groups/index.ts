@@ -16,6 +16,8 @@ export {
   Members,
   type GroupMember,
   type MemberListResponse,
+  type MemberAddResponse,
+  type MemberRemoveResponse,
   type MemberListParams,
   type MemberAddParams,
   type MemberRemoveParams,

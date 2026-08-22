@@ -17,7 +17,7 @@ import * as Errors from './core/error';
 import * as Uploads from './core/uploads';
 import * as API from './resources/index';
 import { APIPromise } from './core/api-promise';
-import { Facetime, FacetimeInitiateCallParams } from './resources/facetime';
+import { Facetime, FacetimeInitiateCallParams, FacetimeInitiateCallResponse } from './resources/facetime';
 import {
   ChatListParams,
   ChatListResponse,
@@ -841,7 +841,11 @@ export declare namespace Blooio {
 
   export { Location as Location };
 
-  export { Facetime as Facetime, type FacetimeInitiateCallParams as FacetimeInitiateCallParams };
+  export {
+    Facetime as Facetime,
+    type FacetimeInitiateCallResponse as FacetimeInitiateCallResponse,
+    type FacetimeInitiateCallParams as FacetimeInitiateCallParams,
+  };
 
   export {
     Groups as Groups,

@@ -20,7 +20,7 @@ export {
   type ContactUpdateParams,
   type ContactListParams,
 } from './contacts/contacts';
-export { Facetime, type FacetimeInitiateCallParams } from './facetime';
+export { Facetime, type FacetimeInitiateCallResponse, type FacetimeInitiateCallParams } from './facetime';
 export {
   Groups,
   type Group,
