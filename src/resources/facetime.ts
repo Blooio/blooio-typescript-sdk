@@ -2,7 +2,6 @@
 
 import { APIResource } from '../core/resource';
 import { APIPromise } from '../core/api-promise';
-import { buildHeaders } from '../internal/headers';
 import { RequestOptions } from '../internal/request-options';
 
 /**
@@ -19,18 +18,31 @@ export class Facetime extends APIResource {
    *
    * @example
    * ```ts
-   * await client.facetime.initiateCall({
+   * const response = await client.facetime.initiateCall({
    *   handle: '+15551234567',
    * });
    * ```
    */
-  initiateCall(body: FacetimeInitiateCallParams, options?: RequestOptions): APIPromise<void> {
-    return this._client.post('/facetime/calls', {
-      body,
-      ...options,
-      headers: buildHeaders([{ Accept: '*/*' }, options?.headers]),
-    });
+  initiateCall(
+    body: FacetimeInitiateCallParams,
+    options?: RequestOptions,
+  ): APIPromise<FacetimeInitiateCallResponse> {
+    return this._client.post('/facetime/calls', { body, ...options });
   }
+}
+
+export interface FacetimeInitiateCallResponse {
+  /**
+   * The handle that was called
+   */
+  handle?: string;
+
+  /**
+   * Shareable FaceTime link
+   */
+  link?: string;
+
+  success?: boolean;
 }
 
 export interface FacetimeInitiateCallParams {
@@ -41,5 +53,8 @@ export interface FacetimeInitiateCallParams {
 }
 
 export declare namespace Facetime {
-  export { type FacetimeInitiateCallParams as FacetimeInitiateCallParams };
+  export {
+    type FacetimeInitiateCallResponse as FacetimeInitiateCallResponse,
+    type FacetimeInitiateCallParams as FacetimeInitiateCallParams,
+  };
 }

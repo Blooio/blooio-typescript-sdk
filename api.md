@@ -80,9 +80,13 @@ Methods:
 
 # Facetime
 
+Types:
+
+- <code><a href="./src/resources/facetime.ts">FacetimeInitiateCallResponse</a></code>
+
 Methods:
 
-- <code title="post /facetime/calls">client.facetime.<a href="./src/resources/facetime.ts">initiateCall</a>({ ...params }) -> void</code>
+- <code title="post /facetime/calls">client.facetime.<a href="./src/resources/facetime.ts">initiateCall</a>({ ...params }) -> FacetimeInitiateCallResponse</code>
 
 # Groups
 
@@ -108,12 +112,14 @@ Types:
 
 - <code><a href="./src/resources/groups/members.ts">GroupMember</a></code>
 - <code><a href="./src/resources/groups/members.ts">MemberListResponse</a></code>
+- <code><a href="./src/resources/groups/members.ts">MemberAddResponse</a></code>
+- <code><a href="./src/resources/groups/members.ts">MemberRemoveResponse</a></code>
 
 Methods:
 
 - <code title="get /groups/{groupId}/members">client.groups.members.<a href="./src/resources/groups/members.ts">list</a>(groupID, { ...params }) -> MemberListResponse</code>
-- <code title="post /groups/{groupId}/members">client.groups.members.<a href="./src/resources/groups/members.ts">add</a>(groupID, { ...params }) -> void</code>
-- <code title="delete /groups/{groupId}/members/{contactId}">client.groups.members.<a href="./src/resources/groups/members.ts">remove</a>(contactID, { ...params }) -> void</code>
+- <code title="post /groups/{groupId}/members">client.groups.members.<a href="./src/resources/groups/members.ts">add</a>(groupID, { ...params }) -> MemberAddResponse</code>
+- <code title="delete /groups/{groupId}/members/{contactId}">client.groups.members.<a href="./src/resources/groups/members.ts">remove</a>(contactID, { ...params }) -> MemberRemoveResponse</code>
 
 ## Icon
 
