@@ -8,11 +8,9 @@ import * as MembersAPI from './members';
 import {
   GroupMember,
   MemberAddParams,
-  MemberAddResponse,
   MemberListParams,
   MemberListResponse,
   MemberRemoveParams,
-  MemberRemoveResponse,
   Members,
 } from './members';
 import { APIPromise } from '../../core/api-promise';
@@ -289,8 +287,6 @@ export declare namespace Groups {
     Members as Members,
     type GroupMember as GroupMember,
     type MemberListResponse as MemberListResponse,
-    type MemberAddResponse as MemberAddResponse,
-    type MemberRemoveResponse as MemberRemoveResponse,
     type MemberListParams as MemberListParams,
     type MemberAddParams as MemberAddParams,
     type MemberRemoveParams as MemberRemoveParams,

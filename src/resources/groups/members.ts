@@ -3,6 +3,7 @@
 import { APIResource } from '../../core/resource';
 import * as ContactsAPI from '../contacts/contacts';
 import { APIPromise } from '../../core/api-promise';
+import { buildHeaders } from '../../internal/headers';
 import { RequestOptions } from '../../internal/request-options';
 import { path } from '../../internal/utils/path';
 
@@ -37,14 +38,17 @@ export class Members extends APIResource {
    *
    * @example
    * ```ts
-   * const response = await client.groups.members.add(
-   *   'grp_abc123def456',
-   *   { contact_id: '+15551234567' },
-   * );
+   * await client.groups.members.add('grp_abc123def456', {
+   *   contact_id: '+15551234567',
+   * });
    * ```
    */
-  add(groupID: string, body: MemberAddParams, options?: RequestOptions): APIPromise<MemberAddResponse> {
-    return this._client.post(path`/groups/${groupID}/members`, { body, ...options });
+  add(groupID: string, body: MemberAddParams, options?: RequestOptions): APIPromise<void> {
+    return this._client.post(path`/groups/${groupID}/members`, {
+      body,
+      ...options,
+      headers: buildHeaders([{ Accept: '*/*' }, options?.headers]),
+    });
   }
 
   /**
@@ -57,19 +61,17 @@ export class Members extends APIResource {
    *
    * @example
    * ```ts
-   * const member = await client.groups.members.remove(
-   *   '%2B15551234567',
-   *   { groupId: 'grp_abc123def456' },
-   * );
+   * await client.groups.members.remove('%2B15551234567', {
+   *   groupId: 'grp_abc123def456',
+   * });
    * ```
    */
-  remove(
-    contactID: string,
-    params: MemberRemoveParams,
-    options?: RequestOptions,
-  ): APIPromise<MemberRemoveResponse> {
+  remove(contactID: string, params: MemberRemoveParams, options?: RequestOptions): APIPromise<void> {
     const { groupId } = params;
-    return this._client.delete(path`/groups/${groupId}/members/${contactID}`, options);
+    return this._client.delete(path`/groups/${groupId}/members/${contactID}`, {
+      ...options,
+      headers: buildHeaders([{ Accept: '*/*' }, options?.headers]),
+    });
   }
 }
 
@@ -109,18 +111,6 @@ export interface MemberListResponse {
   pagination?: ContactsAPI.Pagination;
 }
 
-export interface MemberAddResponse {
-  member?: GroupMember;
-
-  message?: string;
-}
-
-export interface MemberRemoveResponse {
-  removed_at?: number;
-
-  success?: boolean;
-}
-
 export interface MemberListParams {
   /**
    * Maximum number of items to return in a single response. Must be between 1 and
@@ -156,8 +146,6 @@ export declare namespace Members {
   export {
     type GroupMember as GroupMember,
     type MemberListResponse as MemberListResponse,
-    type MemberAddResponse as MemberAddResponse,
-    type MemberRemoveResponse as MemberRemoveResponse,
     type MemberListParams as MemberListParams,
     type MemberAddParams as MemberAddParams,
     type MemberRemoveParams as MemberRemoveParams,
