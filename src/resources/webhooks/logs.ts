@@ -96,6 +96,22 @@ export namespace LogListResponse {
       attachments?: Array<EventBody.Attachment> | null;
 
       /**
+       * The device's own identifier for the group conversation this message arrived in
+       * (only on `message.received` when is_group=true). Two group chats can hold the
+       * same members and are then indistinguishable by `group_id` and `participants`
+       * alone; `chat_guid` is what tells them apart. Matches the `chat_guid` on GET
+       * /groups/{groupId}.
+       */
+      chat_guid?: string | null;
+
+      /**
+       * The name the device reports for the conversation (only on `message.received`
+       * when is_group=true). May differ from `group_name`, or be present when
+       * `group_name` is null.
+       */
+      chat_name?: string | null;
+
+      /**
        * Timestamp when message was delivered (for message.delivered events)
        */
       delivered_at?: number | null;
@@ -147,7 +163,9 @@ export namespace LogListResponse {
       message_id?: string;
 
       /**
-       * Array of group participants (only present when is_group=true)
+       * Array of group participants (only present when is_group=true). One entry per
+       * person: a participant appears once even if Blooio holds more than one identity
+       * for their number.
        */
       participants?: Array<EventBody.Participant> | null;
 
